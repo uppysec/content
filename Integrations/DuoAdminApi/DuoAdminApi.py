@@ -13,7 +13,7 @@ SECRET_KEY = demisto.getParam('secret_key')
 USE_SSL = not demisto.params().get('insecure', False)
 
 # The duo client returns a signature error upon bad secret
-# Convert it to a more informative message using this
+# Convert it to a more informative message using this TESTING
 INVALID_SECRET_ERROR_STRING = 'Invalid signature in request credentials'
 
 # Maps
