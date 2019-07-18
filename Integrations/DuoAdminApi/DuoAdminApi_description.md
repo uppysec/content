@@ -8,3 +8,5 @@ Secret key: your secret key/password provided by duo
 Notice that duo admin api requires different credentials from your regular duo account (i.e. another set of api hostname, integration key and secret key)
 
 For more information please check out the documentation at [https://duo.com/docs/adminapi](https://duo.com/docs/adminapi) #disable-secrets-detection
+
+TEST PR PLEASE IGNORE
