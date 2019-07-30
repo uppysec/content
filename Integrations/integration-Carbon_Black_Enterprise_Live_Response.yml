@@ -628,7 +628,7 @@ script:
     }
 
     function createCommandAndWait() {
-        let result = createCommandRequest(args.session, args.name, args.timeout, args.object, args.compress, args.wait,
+        let result = createCommandRequest(args.session, args.name, args.timeout, args.object, args.commpress, args.wait,
             args['working-dir'], args['output-file'], args['value-data'], args['value-type'], args.overwrite, args.offset,
             args['get-count']);
         sleep(1000);
@@ -1325,13 +1325,13 @@ script:
         return commandEntries['create process'](command);
     }
 
-    function memdumpRequest(sessionId, path, commpress) {
+    function memdumpRequest(sessionId, path) {
         let queryParams = {
             name: 'memdump',
-            object: path
+            object: path,
         };
-        if (commpress) {
-            queryParams.commpress = commpress;
+        if (args.compress) {
+            queryParams.compress = true;
         }
         let response = sendRequest(`/session/${sessionId}/command`, 'POST', queryParams).Body;
         try {
@@ -1341,17 +1341,14 @@ script:
         }
     }
 
-    function memedump() {
-        if (commpress) {
-            args.commpress = args.commpress === 'yes';
-        }
-        let result = memdumpRequest(args['session'], args.path, args.commpress);
+    function memdump() {
+        let result = memdumpRequest(args['session'], args.path);
         //wait for 1 second before trying to get command information
         sleep(1000);
         let timeout = (args['wait-timeout']) ? parseInt(args['wait-timeout']) * 1000 : DEFAULT_WAIT_TIMEOUT;
 
         let command = getCommandInfo(args['session'], result.id, timeout, SLEEP_BETWEEN_RETRIES, args['cancel-on-timeout']);
-        return commandEntries['memedump'](command);
+        return commandEntries['memdump'](command);
     }
 
     function deleteFileFromEndpointRequest(sessionId, path){
@@ -1632,7 +1629,7 @@ script:
                 return directoryList();
             case 'cb-process-execute':
                 return processExec();
-            case 'cb-memdeump':
+            case 'cb-memdump':
                 return memdump();
             case 'cb-file-delete-from-endpoint':
                 return deleteFileFromEndpoint();
@@ -1764,7 +1761,9 @@ script:
     - name: file-id
       required: true
       description: File ID
-    description: Download a file from Cb server in a given session. Use cb-command-create with name=get-file to push the file from a path on the endpint to Cb server before executing cb-file-get.
+    description: Download a file from Cb server in a given session. Use cb-command-create
+      with name=get-file to push the file from a path on the endpint to Cb server
+      before executing cb-file-get.
   - name: cb-file-info
     arguments:
     - name: session
@@ -1805,7 +1804,8 @@ script:
       description: File status (0 if no error, another number otherwise)
     - contextPath: CbLiveResponse.Files.Delete
       description: Whether the file was deleted or not
-    description: Uploads the file to the Cb server. Use cb-command-create with name=put-file to push the file from Cb server to a path on the endpoint.
+    description: Uploads the file to the Cb server. Use cb-command-create with name=put-file
+      to push the file from Cb server to a path on the endpoint.
   - name: cb-keepalive
     arguments:
     - name: session
@@ -2088,7 +2088,7 @@ script:
     - contextPath: CbLiveResponse.Commands.ProcessID
       description: The pid of the executed process.
     description: Run executable on the endpoint.
-  - name: cb-memdeump
+  - name: cb-memdump
     arguments:
     - name: session
       description: The session ID.
@@ -2098,9 +2098,6 @@ script:
     - name: path
       required: true
       description: the path to save the resulting memory dump (on the endpoint).
-    - name: compress
-      description: An optional parameter to specify whether to compress resulting
-        memory dump.
     - name: wait-timeout
       description: Time to wait (in seconds) for Cb command to be executed (change
         status from 'pending' to 'in-progress'/'complete').
@@ -2110,6 +2107,11 @@ script:
       - "yes"
       - "no"
       description: Cancel the command if still 'pending' after timeout.
+    - name: compress
+      description: An optional parameter to compress resulting memory dump.
+      auto: PREDEFINED
+      predefined:
+      - "true"
     outputs:
     - contextPath: CbLiveResponse.Commands.CbCommandID
       description: Unique command identifier.
@@ -2665,5 +2667,3 @@ script:
       description: The destination path of the file.
     description: Save a file to a specific path on the endpoint.
   runonce: false
-tests:
-  - CarbonBlackLiveResponseTest
